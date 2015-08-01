@@ -1,0 +1,4382 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1, user-scalable=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/> 
+
+
+</head>
+
+
+<style>
+
+
+
+
+body{
+  background: #F2F1EF;
+}
+
+body, button, h1, h2, h3, h4, h5{
+
+  font-family: 'Montserrat', arial, sans-serif;
+  color: black;
+  -webkit-font-smoothing: antialiased;
+
+}
+
+img{
+
+  width: 150px;
+  height: 150px;
+  border-radius: 75px;
+  -webkit-border-radius: 75px;
+  -moz-border-radius: 75px;
+  overflow: none;
+ box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+  -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+  -moz-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+}
+ 
+
+ .img-circle{
+    width: 200px;
+  height: 200px;
+  border-radius: 100px;
+  -webkit-border-radius: 100px;
+  -moz-border-radius: 100px;
+  overflow: none;
+ box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+  -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+  -moz-box-shadow: 0 0 8px rgba(0, 0, 0, .8);
+
+
+
+
+ }
+/**
+ * Form & Checkbox Styles
+ */
+
+h4, h1, h2, h3, h5{
+  font-weight: 700;
+  margin-bottom: .5em;
+}
+ 
+label{
+  font-weight: 300;
+}
+ 
+button{
+  display: inline-block;
+  vertical-align: top;
+  padding: .4em .8em;
+  margin: auto;
+  background: #68b8c4;
+  border: 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+}
+ 
+button:focus{
+  outline: 0 none;
+}
+ 
+.controls{
+ 
+  padding: 3%;
+}
+ 
+fieldset{
+  display: inline-block;
+  vertical-align: top;
+  margin: 0 2em 0 0;
+  
+  padding: .5em;
+  border-radius: 3px;
+}
+
+.checkbox{
+  display: block;
+  position: relative;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.checkbox input[type="checkbox"]{
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  margin: 0;
+  opacity: 0;
+  z-index: 1;
+}
+
+.checkbox label{
+  display: inline-block;
+  vertical-align: top;
+  text-align: left;
+  padding-left: 1.5em;
+}
+
+.checkbox label:before,
+.checkbox label:after{
+  content: '';
+  display: block;
+  position: absolute;
+}
+
+.checkbox label:before{
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  background: #ddd;
+  border-radius: 3px;
+}
+
+.checkbox label:after{
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #68b8c4;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkbox input:checked ~ label:after{
+  opacity: 1;
+}
+
+.checkbox input:focus ~ label:before{
+  background: #eee;
+}
+
+/**
+ * Container/Target Styles
+ */
+
+
+
+.container .mix,
+.container .gap{
+
+  cursor: pointer;
+  padding: 20px;
+
+}
+
+.container .mix{
+  
+ 
+ 
+  display: none;
+  overflow: none;
+
+}
+
+
+
+/**
+ * Fail message styles
+ */
+
+.container .fail-message{
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  
+  -webkit-transition: 150ms;
+  -moz-transition: 150ms;
+  transition: 150ms;
+}
+
+.container .fail-message:before{
+  content: '';
+  display: inline-block;
+  vertical-align: middle;
+  height: 100%;
+}
+
+.container .fail-message span{
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.container.fail .fail-message{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+</style>
+
+
+
+<script>
+// To keep our code clean and modular, all custom functionality will be contained inside a single object literal called "checkboxFilter".
+
+var checkboxFilter = {
+  
+  // Declare any variables we will need as properties of the object
+  
+  $filters: null,
+  $reset: null,
+  groups: [],
+  outputArray: [],
+  outputString: '',
+  
+  // The "init" method will run on document ready and cache any jQuery objects we will need.
+  
+  init: function(){
+    var self = this; // As a best practice, in each method we will asign "this" to the variable "self" so that it remains scope-agnostic. We will use it to refer to the parent "checkboxFilter" object so that we can share methods and properties between all parts of the object.
+    
+    self.$filters = $('#Filters');
+    self.$reset = $('#Reset');
+    self.$container = $('#Container');
+    
+    self.$filters.find('fieldset').each(function(){
+      self.groups.push({
+        $inputs: $(this).find('input'),
+        active: [],
+        tracker: false
+      });
+    });
+    
+    self.bindHandlers();
+  },
+  
+  // The "bindHandlers" method will listen for whenever a form value changes. 
+  
+  bindHandlers: function(){
+    var self = this;
+    
+    self.$filters.on('change', function(){
+      self.parseFilters();
+    });
+    
+    self.$reset.on('click', function(e){
+      e.preventDefault();
+      self.$filters[0].reset();
+      self.parseFilters();
+    });
+  },
+  
+  // The parseFilters method checks which filters are active in each group:
+  
+  parseFilters: function(){
+    var self = this;
+ 
+    // loop through each filter group and add active filters to arrays
+    
+    for(var i = 0, group; group = self.groups[i]; i++){
+      group.active = []; // reset arrays
+      group.$inputs.each(function(){ 
+        $(this).is(':checked') && group.active.push(this.value);
+      });
+      group.active.length && (group.tracker = 0);
+    }
+    
+    self.concatenate();
+  },
+  
+  // The "concatenate" method will crawl through each group, concatenating filters as desired:
+  
+  concatenate: function(){
+    var self = this,
+      cache = '',
+      crawled = false,
+      checkTrackers = function(){
+        var done = 0;
+        
+        for(var i = 0, group; group = self.groups[i]; i++){
+          (group.tracker === false) && done++;
+        }
+
+        return (done < self.groups.length);
+      },
+      crawl = function(){
+        for(var i = 0, group; group = self.groups[i]; i++){
+          group.active[group.tracker] && (cache += group.active[group.tracker]);
+
+          if(i === self.groups.length - 1){
+            self.outputArray.push(cache);
+            cache = '';
+            updateTrackers();
+          }
+        }
+      },
+      updateTrackers = function(){
+        for(var i = self.groups.length - 1; i > -1; i--){
+          var group = self.groups[i];
+
+          if(group.active[group.tracker + 1]){
+            group.tracker++; 
+            break;
+          } else if(i > 0){
+            group.tracker && (group.tracker = 0);
+          } else {
+            crawled = true;
+          }
+        }
+      };
+    
+    self.outputArray = []; // reset output array
+
+    do{
+      crawl();
+    }
+    while(!crawled && checkTrackers());
+
+    self.outputString = self.outputArray.join();
+    
+    // If the output string is empty, show all rather than none:
+    
+    !self.outputString.length && (self.outputString = 'all'); 
+    
+    //console.log(self.outputString); 
+    
+    // ^ we can check the console here to take a look at the filter string that is produced
+    
+    // Send the output string to MixItUp via the 'filter' method:
+    
+    if(self.$container.mixItUp('isLoaded')){
+      self.$container.mixItUp('filter', self.outputString);
+    }
+  }
+};
+  
+// On document ready, initialise our code.
+
+$(function(){
+      
+  // Initialize checkboxFilter code
+      
+  checkboxFilter.init();
+      
+  // Instantiate MixItUp
+
+      
+  $('#Container').mixItUp({
+    controls: {
+      enable: false // we won't be needing these
+    },
+    animation: {
+      easing: 'cubic-bezier(0.86, 0, 0.07, 1)',
+      duration: 600
+
+    }
+  });    
+});
+
+
+</script> 
+
+
+</head>
+
+
+<br>
+<br>
+
+
+<body>
+
+  <div class="container">
+    <div class="row">
+  <div class="col-md-3">
+
+
+
+
+
+
+
+<!--Categories (Subject and Location)-->
+
+<form class="controls" id="Filters">
+  <!-- We can add an unlimited number of "filter groups" using the following format: -->
+ 
+<div class="row">
+  <div class="col-md-4">
+
+<div class="btn-group">
+  <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    City<span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu">
+       <fieldset>
+
+    <h4>Arizona</h4>
+    
+    <div class="checkbox">
+
+      <div class="checkbox">
+      <input type="checkbox" value=".chandler"/>
+      <label>Chandler</label>
+
+      <div class="checkbox">
+      <input type="checkbox" value=".gilbert"/>
+      <label>Gilbert</label>
+
+       <div class="checkbox">
+      <input type="checkbox" value=".mesa"/>
+      <label>Mesa</label>
+
+      <div class="checkbox">
+      <input type="checkbox" value=".scottsdale"/>
+      <label>Scottsdale</label>
+    
+      <div class="checkbox">
+      <input type="checkbox" value=".tempe"/>
+      <label>Tempe</label>
+
+  </fieldset>
+  </ul>
+</div>
+</div>
+
+
+   
+ <div class="col-md-4">
+   <div class="btn-group">
+  <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    College <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu">
+       <fieldset>
+
+    <h4>Arizona</h4>
+    <div class="checkbox">
+      <input type="checkbox" value=".asu"/>
+      <label>ASU</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value=".ua"/>
+      <label>UA</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".gcu"/>
+      <label>GCU</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value=".scc"/>
+      <label>SCC</label>
+    </div>
+  </fieldset>
+  </ul>
+</div>
+</div>
+</div>
+   
+   <br>
+   <br>
+
+
+
+    <fieldset>
+    <h4>Mathematics</h4>
+    
+    <div class="checkbox">
+      <input type="checkbox" value=".precalc"/>
+      <label>Pre-Calculus</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".collegemath"/>
+      <label>College Mathematics</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value=".proofs"/>
+      <label>Proof Writing</label>
+    </div>
+        <div class="checkbox">
+      <input type="checkbox" value=".statistics"/>
+      <label>Statistics</label>
+    </div>
+        <div class="checkbox">
+      <input type="checkbox" value=".probability"/>
+      <label>Probability</label>
+    </div>
+  </fieldset>
+
+
+  <fieldset>
+    <h4>Business</h4>
+    <div class="checkbox">
+      <input type="checkbox" value=".finacc"/>
+      <label>Financial Accounting</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".manacc"/>
+      <label>Managerial Accounting</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".macroecon"/>
+      <label>Macroeconomics</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".microecon"/>
+      <label>Microeconomics</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value=".finance"/>
+      <label>Finance</label>
+    </div>
+  </fieldset>
+  
+  
+  <fieldset>
+    <h4>Engineering</h4>
+    <div class="checkbox">
+      <input type="checkbox" value=".calc1engineer"/>
+      <label>Calculus I</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".calc2engineer"/>
+      <label>Calculus II</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".calc3engineer"/>
+      <label>Calculus III</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value=".diffeq"/>
+      <label>Differential Equations</label>
+    </div>
+
+    <div class="checkbox">
+      <input type="checkbox" value=".linearalgebra"/>
+      <label>Linear Algebra</label>
+    </div>
+
+  </fieldset>
+
+  <fieldset>
+    <h4>Science</h4>
+    <div class="checkbox">
+      <input type="checkbox" value=".biology"/>
+      <label>Biology</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".chemistry"/>
+      <label>Chemistry</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".humananatomy"/>
+      <label>Anatomy and Physiology</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value=".genetics"/>
+      <label>Genetics</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".ochem"/>
+      <label>Organic Chemistry</label>
+    </div>
+ </fieldset>
+
+
+
+      <fieldset>
+    <h4>Computer Science</h4>
+    <div class="checkbox">
+      <input type="checkbox" value=".introc++"/>
+      <label>Intro to C++</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".introjava"/>
+      <label>Intro to Java</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".ooc"/>
+      <label>Object Oriented Programming</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value="datastructurealg"/>
+      <label>Data Structures and Algorithms</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value="digitaldesign"/>
+      <label>Digital Design Logic</label>
+    </div>
+ </fieldset>
+
+   <fieldset>
+    <h4>Physics</h4>
+    <div class="checkbox">
+      <input type="checkbox" value=".kinematics"/>
+      <label>Kinematics and Motion</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".electromagnetism"/>
+      <label>Electromagnetism</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value=".mechanics"/>
+      <label>Mechanics</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value=".statics"/>
+      <label>Statics</label>
+    </div>
+   
+ </fieldset>
+  
+
+        <fieldset>
+    <h4>English and Writing</h4>
+    <div class="checkbox">
+      <input type="checkbox" value="biology"/>
+      <label>Language and Grammar</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value="chemistry"/>
+      <label>Essay Development</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value="humananatomy"/>
+      <label>Communication</label>
+    </div>
+     <div class="checkbox">
+      <input type="checkbox" value="genetics"/>
+      <label>Argumentation</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value="ochem"/>
+      <label>Public Speaking</label>
+    </div>
+ </fieldset>
+  
+
+    <fieldset>
+    <h4>Foreign Language</h4>
+    <div class="checkbox">
+      <input type="checkbox" value="biology"/>
+      <label>Spanish</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value="chemistry"/>
+      <label>French</label>
+    </div>
+    <div class="checkbox">
+      <input type="checkbox" value="humananatomy"/>
+      <label>Farsi</label>
+  </fieldset>
+
+</form>
+
+
+</div>
+
+<!--Categories (Subject and Location)-->
+
+
+
+
+
+<div id="Container" class="container">
+  <div class="fail-message"><span>Sorry about that, try again!</span></div>
+  
+
+
+
+
+
+<br>
+<br>
+<br>
+
+ <!-- Tutor List -->
+
+
+<!-- Adam -->
+
+    <div class="mix precalc collegemath freshmanmath proofs calc1engineer calc2engineer calc3engineer"><img src="https://36.media.tumblr.com/9f709a1df9d75c89419ac1d622adc044/tumblr_ns6adqa87H1uu6sfeo1_500.png" alt="" data-toggle="modal" data-target="#adamModal">
+    </div>
+<!-- Modal -->
+<div class="modal fade" id="adamModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+         <center><h1 class="modal-title" id="myModalLabel">Adam</h1></center>
+<center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+
+      
+
+    </div>
+
+      <div class="modal-body">
+
+        <div class="row">
+  <div class="col-md-6">
+<br>
+
+
+ <br>
+<center><img class="img-circle" src="https://36.media.tumblr.com/9f709a1df9d75c89419ac1d622adc044/tumblr_ns6adqa87H1uu6sfeo1_500.png" alt=""></img></center>
+          <br>
+<strong><h4>Bio: <small>I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</small></h4></strong>
+
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+      <br>
+    <br>
+        <br>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+    <div class="form-group">
+    <label for="pwd">Course or Subject:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+ 
+
+
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+
+
+  <h3>Qualified to Tutor:</h3>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <strong><li>MAT110</li></strong>
+  <strong><li>MAT117</li></strong>
+  <strong><li>MAT119</li></strong>
+  <strong><li>MAT142</li></strong>
+  <strong><li>MAT170</li></strong>
+  <strong><li>MAT171</li></strong>
+ <strong> <li>MAT242</li></strong>
+ <strong> <li>MAT342</li></strong>
+ <strong> <li>MAT343</li></strong>
+
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+ <strong> <li>MAT265</li></strong>
+ <strong> <li>MAT266</li></strong>
+ <strong> <li>MAT267</li></strong>
+ <strong> <li>MAT270</li></strong>
+ <strong> <li>MAT271</li></strong>
+ <strong><li>MAT272</li></strong>
+
+<strong> <li>MAT243</li></strong>
+<strong> <li>MAT300</li></strong>
+<strong> <li>MAT275</li></strong>
+
+
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+   <strong><li>General Mathematics</li>  </strong>
+   <strong> <li>Calc I, II, III</li>  </strong>
+   <strong><li>Discrete Mathematics</li>  </strong>
+   <strong> <li>Differential Equations</li>  </strong>
+   <strong><li>Proof Writing and Logic</li>  </strong>
+   <strong> <li>Statistics and Probability</li>  </strong>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Adi -->
+
+    <div class="mix precalc collegemath freshmanmath calc1engineer calc2engineer calc3engineer"> <img src="https://41.media.tumblr.com/478adf83c958c3017a772d0022c0d484/tumblr_ns6adqa87H1uu6sfeo2_500.png" alt="" data-toggle="modal" data-target="#adiModal">
+    </div>
+
+
+
+    <!-- Modal -->
+<div class="modal fade" id="adiModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+     <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/478adf83c958c3017a772d0022c0d484/tumblr_ns6adqa87H1uu6sfeo2_500.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p>I have been a mathematics tutor for multiple semesters during my undergraduate studies. I do my best be very precise with my explanations, I know how valuable a students time can be. I am also passionate about helping others, book a session if you need help now!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Adi</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+  <!-- Alex C. -->
+
+    <div class="mix chap precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/ce20435507b5fcbe265c981e00f17e5f/tumblr_ns6adqa87H1uu6sfeo3_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#alexcModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="alexcModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+<div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/ce20435507b5fcbe265c981e00f17e5f/tumblr_ns6adqa87H1uu6sfeo3_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am a Biomedical Engineering undergrad entering my senior year. I believe that my down to earth personality combined with my enjoyment of teaching others will allow me to be the best tutor I can be. Through my undergraduate years I could not have come out on top without seeking tutoring myself. College can be a difficult journey alone, so allow myself or any of the other ATFY tutors to help guide you through the journey ahead! Send me a message and lets set the stage to a great year!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Alex</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Alex G. -->
+
+    <div class="mix finacc manacc"> <img src="https://41.media.tumblr.com/97cfc11dbed08a3efe7893a844f1a522/tumblr_ns6adqa87H1uu6sfeo4_400.png" alt="" data-toggle="modal" data-target="#alexgModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="alexgModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/97cfc11dbed08a3efe7893a844f1a522/tumblr_ns6adqa87H1uu6sfeo4_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Alex</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Business Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+<div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Alexis A. -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/a717309578ed22a0dca8d072d42ee1ef/tumblr_ns6adqa87H1uu6sfeo5_400.png" alt="" data-toggle="modal" data-target="#alexisaModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="alexisaModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/a717309578ed22a0dca8d072d42ee1ef/tumblr_ns6adqa87H1uu6sfeo5_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Alexis</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <!-- Aliah -->
+
+    <div class="mix biology chemistry"> <img src="https://40.media.tumblr.com/1093c5bbc1d063ec46ee6e2a5bbefe0d/tumblr_ns6adqa87H1uu6sfeo7_1280.png" alt="" data-toggle="modal" data-target="#aliahModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="aliahModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/1093c5bbc1d063ec46ee6e2a5bbefe0d/tumblr_ns6adqa87H1uu6sfeo7_1280.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Aliah</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Science and Writing Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+    <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+     <!-- Allie -->
+
+    <div class="mix biology chemistry"> <img src="https://40.media.tumblr.com/c029fad4b0f011a219c14916317c7671/tumblr_ns6adqa87H1uu6sfeo8_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#allieModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="allieModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+       <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/c029fad4b0f011a219c14916317c7671/tumblr_ns6adqa87H1uu6sfeo8_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Allie</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Nursing Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- Amanda H. -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img  src="https://41.media.tumblr.com/2936e2376a678bbd8afade4d9f5a03c8/tumblr_ns6adqa87H1uu6sfeo10_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#amandahModal">
+    </div>
+
+
+        <!-- Modal -->
+<div class="modal fade" id="amandahModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/2936e2376a678bbd8afade4d9f5a03c8/tumblr_ns6adqa87H1uu6sfeo10_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Amanda</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Engineering Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+     <!-- Amanda S. -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://36.media.tumblr.com/24504ec16c252ef85df42705e47bef5a/tumblr_ns6adqa87H1uu6sfeo9_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#amandasModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="amandasModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://36.media.tumblr.com/24504ec16c252ef85df42705e47bef5a/tumblr_ns6adqa87H1uu6sfeo9_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Amanda</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Engineering Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+<div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+     <!-- Arman -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/979c32d59ebc92d8476f478346af50c5/tumblr_nsabm0sVsG1uu6sfeo1_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#armanModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="armanModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+       <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/979c32d59ebc92d8476f478346af50c5/tumblr_nsabm0sVsG1uu6sfeo1_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> If you need help in Accounting, Mathematics, and Economics, then I am your guy. I currently have a double major in Economics and Accounting with a minor in mathematics. I will attempt to tutor any course I was successful in, and I promise to ensure you will be successful in your class!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Arman</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Accounting Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+   <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+ <!-- Ashley -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/6986d1872fcbd68410aa58f7a09adefe/tumblr_nsabm0sVsG1uu6sfeo4_400.png" alt="" data-toggle="modal" data-target="#ashleyModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="ashleyModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/6986d1872fcbd68410aa58f7a09adefe/tumblr_nsabm0sVsG1uu6sfeo4_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Ashley</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+   <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+ <!-- Camm -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/1b97d1cb819acdb96d991afaecb3472b/tumblr_nsabm0sVsG1uu6sfeo5_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#cammModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="cammModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/1b97d1cb819acdb96d991afaecb3472b/tumblr_nsabm0sVsG1uu6sfeo5_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am a senior at ASU. I find tutoring immensely rewarding and I am genuinely interested in the success of the students I help. I tend to emphasize logic over memorization and believe discussion is an excellent path to understanding. My tutoring experience has made me acutely aware of different learning styles so I'm attentive to the individual needs of those I tutor. In my free time (what's left of it anyway!) I like cooking, watching movies, working out, and of course reading!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Cammeron</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+   <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+ <!-- Clementina -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/6392935c1a2533bec85065326892b4fe/tumblr_nsabm0sVsG1uu6sfeo7_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#clementinaModal">
+    </div>
+
+
+        <!-- Modal -->
+<div class="modal fade" id="clementinaModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/6392935c1a2533bec85065326892b4fe/tumblr_nsabm0sVsG1uu6sfeo7_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am a junior in Electrical Engineering. I keep myself involved on campus with my engineering fraternity, Theta Tau, and Arizona Mentor Society, an organization that tutors under privileged elementary students in Tempe.</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Clementina</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Engineering and Writing Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+   <!-- Chris -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/0fa91cf8dc6fd94a20e5f881811a9ae6/tumblr_nsabm0sVsG1uu6sfeo3_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#chrisModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="chrisModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/0fa91cf8dc6fd94a20e5f881811a9ae6/tumblr_nsabm0sVsG1uu6sfeo3_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am studying Computer Systems Engineering and I am well-versed in programming languages such as Python, C, C++ and Java. I have a general understanding of Verilog as well as MIPS Assembly Language. I have coded a game of Sudoku for PC with a group of four others that is pretty fun to play! A couple of my favorite classes have been CSE 325-Embedded Microprocessor Systems and IEE 380-Probability & Statistic Engineering Problem Solving!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Chris</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Computer Science Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+<div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+ 
+ <!--Connor -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/cf6fe5b74915ce7b13aeafa29d79e26a/tumblr_ns8ed6RIwt1uu6sfeo1_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#connorModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="connorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/cf6fe5b74915ce7b13aeafa29d79e26a/tumblr_ns8ed6RIwt1uu6sfeo1_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Connor</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Math and Business Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+    <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+ 
+ <!--Cyril -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/4b3783cce2359210f83d657494c4c37b/tumblr_ns8ed6RIwt1uu6sfeo2_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#cyrilModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="cyrilModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+         <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/4b3783cce2359210f83d657494c4c37b/tumblr_ns8ed6RIwt1uu6sfeo2_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am an experienced tutor. I have held undergraduate leadership positions teaching chemistry and physics. I switched to medicine from engineering so I am able to tutor multiple mathematics as well. Message me in the chat to book a session!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Cyril</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Science and Writing Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!--Drew -->
+
+  <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/62aed2bab9cadb0c9bf63774c9df3853/tumblr_ns8ed6RIwt1uu6sfeo4_500.png" alt="" height="175" width="175" data-toggle="modal" data-target="#drewModal">
+  </div>
+
+      <!-- Modal -->
+<div class="modal fade" id="drewModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/62aed2bab9cadb0c9bf63774c9df3853/tumblr_ns8ed6RIwt1uu6sfeo4_500.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am a Senior Mechanical Engineering student with multiple internships, tutor, and teaching assistant positions. I have a concrete understanding of statics, dynamics, calculus, thermofluids, circuits and a great depth of knowledge solid-works and ANSYS. I can help with MatLab assignments also. Feel free to message me in the chat to set up a session!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Drew</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Physics and Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+ <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+   <!--Leslie -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/68ec8207287b5e41702358f69bb3c719/tumblr_ns8eb7yBht1uu6sfeo1_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#leslieModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="leslieModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+       <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/68ec8207287b5e41702358f69bb3c719/tumblr_ns8eb7yBht1uu6sfeo1_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> Hi, my name is Leslie, I'm a third year undergraduate chemical engineering student at the Arizona State University. I have been a tutor for three years now and my favorite subject to tutor is Calculus (I,II,III) !</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Leslie</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!--Linda -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/66f6185dc2a025716a44f488032b20c3/tumblr_ns8eb7yBht1uu6sfeo2_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#lindaModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="lindaModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/66f6185dc2a025716a44f488032b20c3/tumblr_ns8eb7yBht1uu6sfeo2_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Linda</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Physics and Mechanics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Luga -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="  https://40.media.tumblr.com/f2d8aba6e667027146b4215130315c2a/tumblr_ns8eb7yBht1uu6sfeo3_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#lugaModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="lugaModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+     <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src=" https://40.media.tumblr.com/f2d8aba6e667027146b4215130315c2a/tumblr_ns8eb7yBht1uu6sfeo3_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Luga</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Engineering Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Mariana -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src=" https://41.media.tumblr.com/dfde6247465fa7397065876b11417b66/tumblr_ns8eb7yBht1uu6sfeo4_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#marianaModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="marianaModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/dfde6247465fa7397065876b11417b66/tumblr_ns8eb7yBht1uu6sfeo4_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Mariana</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Math and Physics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+  <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+  <!--Max -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/44192323f5a4443d0dc5bcca49c78394/tumblr_ns8eb7yBht1uu6sfeo5_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#maxModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="maxModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+     <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/44192323f5a4443d0dc5bcca49c78394/tumblr_ns8eb7yBht1uu6sfeo5_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Max</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+<div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!--Melissa -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/5ee40b610a216753029377ceddeadf64/tumblr_ns8eb7yBht1uu6sfeo6_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#melissaModal">
+    </div>
+
+    <!-- Modal -->
+<div class="modal fade" id="melissaModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/5ee40b610a216753029377ceddeadf64/tumblr_ns8eb7yBht1uu6sfeo6_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Melissa</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Computer Science Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+   <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!--MikeG. -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/bcc9c188d8e018597c7b11ebdb2285e8/tumblr_ns8eb7yBht1uu6sfeo7_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#mikegModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="mikegModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/bcc9c188d8e018597c7b11ebdb2285e8/tumblr_ns8eb7yBht1uu6sfeo7_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Mike</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    <!--Natalie -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/5d9678d7db79400c4515292abad60319/tumblr_ns8eb7yBht1uu6sfeo9_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#natalieModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="natalieModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/5d9678d7db79400c4515292abad60319/tumblr_ns8eb7yBht1uu6sfeo9_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Natalie</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Law and Writing Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+   <!--Nicholas -->
+
+    <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/79834a90c9b39676151130cf9b9e81d5/tumblr_ns8eb7yBht1uu6sfeo10_500.png" alt="" height="175" width="175" data-toggle="modal" data-target="#nicholasModal">
+    </div>
+
+        <!-- Modal -->
+<div class="modal fade" id="nicholasModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+       <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/79834a90c9b39676151130cf9b9e81d5/tumblr_ns8eb7yBht1uu6sfeo10_500.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Nicholas</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Math and Physics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+   <!--Rachel N.-->
+
+  <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/582df31ce4179b59e43d84c272cc20e1/tumblr_ns8ec24T3I1uu6sfeo1_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#rachelnModal">
+  </div>
+
+      <!-- Modal -->
+<div class="modal fade" id="rachelnModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/582df31ce4179b59e43d84c272cc20e1/tumblr_ns8ec24T3I1uu6sfeo1_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Rachel</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Mathematics Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+ 
+  <!--Rachel J.-->
+
+  <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/302ffa069abdc20c3d1d3d1df4b1a5ce/tumblr_ns8ec24T3I1uu6sfeo2_250.png" alt="" height="175" width="175" data-toggle="modal" data-target="#racheljModal">
+  </div>
+
+      <!-- Modal -->
+<div class="modal fade" id="racheljModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/302ffa069abdc20c3d1d3d1df4b1a5ce/tumblr_ns8ec24T3I1uu6sfeo2_250.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am currently a senior and have taken multiple classes pertaining to mathematics and science. I have been a tutor and teaching assistant during my undergraduate studies. I love tutoring students who enjoy learning as much as I do, so send me a message so we can set up a time to meet in person!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Rachel</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Engineering Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+ 
+
+
+    <!--Peter-->
+
+  <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/8395ae70f4f71be6c2e7d2a4f3424552/tumblr_ns8ec24T3I1uu6sfeo6_500.png" alt="" height="175" width="175" data-toggle="modal" data-target="#peterModal">
+  </div>
+
+
+    <!-- Modal -->
+<div class="modal fade" id="peterModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/8395ae70f4f71be6c2e7d2a4f3424552/tumblr_ns8ec24T3I1uu6sfeo6_500.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Peter</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Computer Science Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+<div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+ 
+
+   <!--Sebastian-->
+
+  <div class="mix precalc collegemath freshmanmath calc1engineer calc2engineer calc3engineer diffeq"> <img src="https://41.media.tumblr.com/aada6e138c6193f9e364a5cb38dadcdf/tumblr_ns8ec24T3I1uu6sfeo7_540.png" alt="" height="175" width="175" data-toggle="modal" data-target="#sebastianModal">
+  </div>
+
+      <!-- Modal -->
+<div class="modal fade" id="sebastianModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+     <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/aada6e138c6193f9e364a5cb38dadcdf/tumblr_ns8ec24T3I1uu6sfeo7_540.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Sebastian</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Physics and Math Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+   <!--Sepehr-->
+
+  <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/d769b38155bba6d041471c039c28c1e8/tumblr_ns8ec24T3I1uu6sfeo4_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#sepehrModal">
+  </div>
+
+      <!-- Modal -->
+<div class="modal fade" id="sepehrModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/d769b38155bba6d041471c039c28c1e8/tumblr_ns8ec24T3I1uu6sfeo4_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Sepehr</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Engineering Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+
+     <!--Taylor-->
+
+  <div class="mix precalc collegemath freshmanmath"> <img src="https://40.media.tumblr.com/f1a037df1316260fa9ad2757a436226a/tumblr_ns8ec24T3I1uu6sfeo8_1280.png" alt="" height="175" width="175" data-toggle="modal" data-target="#taylorModal">
+  </div>
+
+      <!-- Modal -->
+<div class="modal fade" id="taylorModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+   <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://40.media.tumblr.com/f1a037df1316260fa9ad2757a436226a/tumblr_ns8ec24T3I1uu6sfeo8_1280.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Taylor</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Science Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+      <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!--Vince-->
+
+  <div class="mix precalc collegemath freshmanmath"> <img src="https://41.media.tumblr.com/31f5e238f6201dccd23185e4c2db7dc8/tumblr_ns8ec24T3I1uu6sfeo5_400.png" alt="" height="175" width="175" data-toggle="modal" data-target="#vinceModal">
+  </div>
+
+      <!-- Modal -->
+<div class="modal fade" id="vinceModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <div class="row">
+  <div class="col-md-6">
+<br>
+          <center><img class="img-circle" src="https://41.media.tumblr.com/31f5e238f6201dccd23185e4c2db7dc8/tumblr_ns8ec24T3I1uu6sfeo5_400.png" alt=""></img></center>
+<strong><h4>Bio</h4></strong>
+<p> I am pursuing mathematics because I have always loved studying theory and learning about the world as it is to the best of my ability (seeking the truth about reality). I have been tutoring on a for over 2.5 years, mainly with math. Submit your information to book a session with me!</p>
+        
+<br>
+        </div>
+
+<div class="col-md-6">
+
+ <center><h1 class="modal-title" id="myModalLabel">Vince</h1></center>
+          <center><h2 class="modal-title" id="myModalLabel"><small>Business Tutor</small></h2></center>
+<form role="form">
+  <div class="form-group">
+    <label for="email">Name:</label>
+    <input type="email" class="form-control" id="email">
+  </div>
+  <div class="form-group">
+    <label for="pwd">Phone Number:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+
+  <div class="form-group">
+    <label for="pwd">Email:</label>
+    <input type="password" class="form-control" id="pwd">
+  </div>
+  <br>
+
+  <center><button type="button" class="btn btn-primary btn-lg">Book a Session</button></center>
+
+</form>
+
+
+          
+       
+
+</div>
+</div>
+      
+
+    </div>
+
+     <div class="modal-body">
+
+
+  <h4>Qualified to Tutor:</h4>
+  <br>
+
+<div class="row">
+<div class="col-md-3">  
+
+<ul>
+
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-3"> 
+ 
+<ul>
+  <li>MAT265</li>
+  <li>MAT266</li>
+  <li>MAT267</li>
+  <li>MAT270</li>
+  <li>MAT271</li>
+  <li>MAT272</li>
+</ul>
+</div>
+
+<div class="col-md-6">
+<ul>
+  <li>General Mathematics</li>
+  <li>Calc I, II, III</li>
+  <li>Discrete Mathematics</li>
+  <li>Differential Equations</li>
+  <li>Proof Writing and Logic</li>
+  <li>Statistics and Probability</li>
+</ul>
+</div>
+</div>
+<br>
+     
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+         
+      </div>
+    </div>
+  </div>
+</div>
+ 
+
+
+
+
+
+
+
+
+
+
+ 
+
+  <div class="gap"></div>
+  <div class="gap"></div>
+  <div class="gap"></div>
+  <div class="gap"></div>
+</div>
+
+
+
+
+</body>
+
+
+
+</html>
+
+

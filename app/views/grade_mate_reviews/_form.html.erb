@@ -1,0 +1,29 @@
+<%= form_for(@grade_mate_review) do |f| %>
+  <% if @grade_mate_review.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@grade_mate_review.errors.count, "error") %> prohibited this grade_mate_review from being saved:</h2>
+
+      <ul>
+      <% @grade_mate_review.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :school %><br>
+    <%= f.text_field :school %>
+  </div>
+  <div class="field">
+    <%= f.label :course %><br>
+    <%= f.text_field :course %>
+  </div>
+  <div class="field">
+    <%= f.label :teacher %><br>
+    <%= f.text_field :teacher %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

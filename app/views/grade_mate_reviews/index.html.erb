@@ -1,0 +1,29 @@
+<h1>Listing grade_mate_reviews</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>School</th>
+      <th>Course</th>
+      <th>Teacher</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @grade_mate_reviews.each do |grade_mate_review| %>
+      <tr>
+        <td><%= grade_mate_review.school %></td>
+        <td><%= grade_mate_review.course %></td>
+        <td><%= grade_mate_review.teacher %></td>
+        <td><%= link_to 'Show', grade_mate_review %></td>
+        <td><%= link_to 'Edit', edit_grade_mate_review_path(grade_mate_review) %></td>
+        <td><%= link_to 'Destroy', grade_mate_review, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Grade mate review', new_grade_mate_review_path %>

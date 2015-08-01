@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>School:</strong>
+  <%= @grade_mate_review.school %>
+</p>
+
+<p>
+  <strong>Course:</strong>
+  <%= @grade_mate_review.course %>
+</p>
+
+<p>
+  <strong>Teacher:</strong>
+  <%= @grade_mate_review.teacher %>
+</p>
+
+<%= link_to 'Edit', edit_grade_mate_review_path(@grade_mate_review) %> |
+<%= link_to 'Back', grade_mate_reviews_path %>

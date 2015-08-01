@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1, user-scalable=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/> 
+
+
+</head>
+
+
+<style>
+
+
+body, button{
+  font-family: 'Montserrat', arial, sans-serif;
+  color: black;
+  -webkit-font-smoothing: antialiased;
+}
+</style>
+<body>
+<br>
+<br>
+
+
+
+<!-- jumbotron -->
+
+
+
+
+
+
+
+
+
+
+<div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+  <!-- Indicators -->
+  <ol class="carousel-indicators">
+    <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+    <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+    <li data-target="#carousel-example-generic" data-slide-to="2"></li>
+  </ol>
+
+  <!-- Wrapper for slides -->
+  <div class="carousel-inner" role="listbox">
+    <div class="item active">
+     
+<div class="jumbotron">
+
+  <center><img src="https://36.media.tumblr.com/5c5a10d5be6cde6030777df3f700f289/tumblr_ns2z6ymLW11uu6sfeo1_250.png" alt="..." class="img-circle"></center>
+
+
+
+
+  <center><h1>A Tutor For You</h1>
+  <h2><cite title="ATFY Reviews">Quality Tutors at your Service</cite></h2></center>
+  <br>
+  
+
+   <center> <% if student_signed_in? %>
+          
+     <% else %>
+       <p>
+         <%= link_to "Log in", new_student_session_path, class: "btn btn-default btn-lg" %>
+         <%= link_to "Sign up", new_student_registration_path, class: "btn btn-primary btn-lg" %>
+       </p>
+  <% end %> 
+  </center> 
+
+
+      </div>
+    </div>
+
+
+
+
+ <div class="item">
+     
+<div class="jumbotron">
+
+  <center><img src="https://36.media.tumblr.com/5c5a10d5be6cde6030777df3f700f289/tumblr_ns2z6ymLW11uu6sfeo1_250.png" alt="..." class="img-circle"></center>
+
+
+
+
+  <center><h1>A Tutor For You</h1>
+  <h2><cite title="ATFY Reviews">Quality Tutors at your Service</cite></h2></center>
+  <br>
+  
+
+   <center> <% if student_signed_in? %>
+          
+     <% else %>
+       <p>
+         <%= link_to "Log in", new_student_session_path, class: "btn btn-default btn-lg" %>
+         <%= link_to "Sign up", new_student_registration_path, class: "btn btn-primary btn-lg" %>
+       </p>
+  <% end %> 
+  </center> 
+
+
+      </div>
+    </div>
+
+
+
+    <div class="item">
+   <div class="jumbotron">
+
+  <center><img src="https://36.media.tumblr.com/5c5a10d5be6cde6030777df3f700f289/tumblr_ns2z6ymLW11uu6sfeo1_250.png" alt="..." class="img-circle"></center>
+
+
+
+
+  <center><h1>A Tutor For You</h1>
+  <h2><cite title="ATFY Reviews">Quality Tutors at your Service</cite></h2></center>
+  <br>
+  
+
+   <center> <% if student_signed_in? %>
+          
+     <% else %>
+       <p>
+         <%= link_to "Log in", new_student_session_path, class: "btn btn-default btn-lg" %>
+         <%= link_to "Sign up", new_student_registration_path, class: "btn btn-primary btn-lg" %>
+       </p>
+  <% end %> 
+  </center> 
+     
+
+
+
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br>
+<br>
+
+
+
+
+
+
+
+
+
+
+<!-- Packages Contet -->
+
+<div class="container">
+
+
+<center><div class="col-md-4">
+<div class="list-group" size="20px">
+
+  <div class="panel panel-default">
+
+  <div class="panel-body">
+
+    <div class="panel-heading"><h2>Private Tutoring<h2></div>
+    
+ 
+  <button type="button" class="list-group-item">1 student</button>
+  <button type="button" class="list-group-item">2 students</button>
+  <button type="button" class="list-group-item">3 students</button>
+  <button type="button" class="list-group-item">4+ students</button>
+
+<br>
+ <div class="panel-heading">
+     <div class="btn btn-primary">Enroll</div>
+</div></center>
+
+
+
+
+<center><div class="col-md-4">
+<div class="list-group" size="20px">
+
+  <div class="panel panel-default">
+
+  <div class="panel-body">
+
+    <div class="panel-heading"><h2>Web Tutorials<h2></div>
+    
+ 
+  <button type="button" class="list-group-item">1 month subcscription</button>
+  <button type="button" class="list-group-item">6 month subscription</button>
+  <button type="button" class="list-group-item">1 year subscription</button>
+  <button type="button" class="list-group-item">4 year subscription</button>
+
+<br>
+ <div class="panel-heading">
+     <div class="btn btn-primary">Enroll</div>
+</div></center>
+
+
+<center><div class="col-md-4">
+<div class="list-group" size="20px">
+
+  <div class="panel panel-default">
+
+  <div class="panel-body">
+
+    <div class="panel-heading"><h2>Class Guides<h2></div>
+    
+ 
+  <button type="button" class="list-group-item">Optimize your Schedule</button>
+  <button type="button" class="list-group-item">What books to buy!</button>
+  <button type="button" class="list-group-item">Sleepers vs. all nighters!</button>
+  <button type="button" class="list-group-item">Hacks and Survival Tips</button>
+
+<br>
+ <div class="panel-heading">
+     <div class="btn btn-primary">Enroll</div>
+</div></center>
+
+
+
+
+
+
+
+
+</div>
+
+</div>
+
+<br>
+<br>
+
+
+
+
+
+
+
+
+
+
+
+
+

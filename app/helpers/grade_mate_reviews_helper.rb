@@ -1,0 +1,2 @@
+module GradeMateReviewsHelper
+end
